@@ -1,0 +1,76 @@
+#include <iostream>
+#include <stack>
+#include <cctype>   // for isdigit function
+#include <string>   // for string
+
+using namespace std;
+
+// Function to determine precedence of operators
+int precedence(char op) {
+    if (op == '+' || op == '-') {
+        return 1;  // Lowest precedence
+    }
+    if (op == '*' || op == '/') {
+        return 2;  // Higher precedence
+    }
+    if (op == '^') {
+        return 3;  // Highest precedence
+    }
+    return 0;      // For '(' and others
+}
+
+// Function to convert infix to postfix
+string infixToPostfix(string expression) {
+    stack<char> operators;   // Stack to hold operators
+    string result;           // Resultant postfix expression
+
+    for (int i = 0; i < expression.length(); i++) {
+        char token = expression[i];
+
+        // If the token is an operand (letter/number), add it to the result
+        if (isalnum(token)) {
+            result += token;
+        }
+        // If the token is '(', push it to the stack
+        else if (token == '(') {
+            operators.push(token);
+        }
+        // If the token is ')', pop from the stack to the result until '(' is found
+        else if (token == ')') {
+            while (!operators.empty() && operators.top() != '(') {
+                result += operators.top();
+                operators.pop();
+            }
+            operators.pop();  // Pop the '('
+        }
+        // If the token is an operator
+        else {
+            // Pop higher or equal precedence operators from the stack
+            while (!operators.empty() && precedence(operators.top()) >= precedence(token)) {
+                result += operators.top();
+                operators.pop();
+            }
+            operators.push(token);  // Push the current operator
+        }
+    }
+
+    // Pop any remaining operators in the stack
+    while (!operators.empty()) {
+        result += operators.top();
+        operators.pop();
+    }
+
+    return result;  // Postfix expression
+}
+
+int main() {
+    string infixExpression;
+    cout << "Enter an infix expression: ";
+    cin >> infixExpression;
+
+    string postfixExpression = infixToPostfix(infixExpression);
+
+    cout << "Postfix Expression: " << postfixExpression << endl;
+
+    return 0;
+}
