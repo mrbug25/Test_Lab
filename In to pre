@@ -1,0 +1,111 @@
+#include <iostream>
+#include <stack>
+#include <algorithm> // for reverse function
+#include <cctype>    // for isalnum function
+
+using namespace std;
+
+// Function to determine precedence of operators
+int precedence(char op) {
+    if (op == '+' || op == '-') {
+        return 1;  // Lowest precedence
+    }
+    if (op == '*' || op == '/') {
+        return 2;  // Higher precedence
+    }
+    if (op == '^') {
+        return 3;  // Highest precedence
+    }
+    return 0;      // For '(' and others
+}
+
+// Function to check if the operator is right associative (only ^ in this case)
+bool isRightAssociative(char op) {
+    if (op == '^') {
+        return true;
+    }
+    return false;
+}
+
+// Function to convert the infix expression to postfix
+string infixToPostfix(string expression) {
+    stack<char> operators;
+    string result;
+
+    for (int i = 0; i < expression.length(); i++) {
+        char token = expression[i];
+
+        // If the token is an operand (letter/number), add it to the result
+        if (isalnum(token)) {
+            result += token;
+        }
+        // If the token is '(', push it to the stack
+        else if (token == '(') {
+            operators.push(token);
+        }
+        // If the token is ')', pop until '(' is found
+        else if (token == ')') {
+            while (!operators.empty() && operators.top() != '(') {
+                result += operators.top();
+                operators.pop();
+            }
+            operators.pop();  // Pop the '('
+        }
+        // If the token is an operator
+        else {
+            // Pop higher or equal precedence operators from the stack
+            while (!operators.empty() && 
+                   (precedence(operators.top()) > precedence(token) ||
+                   (precedence(operators.top()) == precedence(token) && !isRightAssociative(token))) &&
+                   operators.top() != '(') {
+                result += operators.top();
+                operators.pop();
+            }
+            operators.push(token);  // Push the current operator
+        }
+    }
+
+    // Pop any remaining operators in the stack
+    while (!operators.empty()) {
+        result += operators.top();
+        operators.pop();
+    }
+
+    return result;
+}
+
+// Function to convert infix to prefix
+string infixToPrefix(string expression) {
+    // Step 1: Reverse the infix expression
+    reverse(expression.begin(), expression.end());
+
+    // Step 2: Change parentheses
+    for (int i = 0; i < expression.length(); i++) {
+        if (expression[i] == '(') {
+            expression[i] = ')';
+        }
+        else if (expression[i] == ')') {
+            expression[i] = '(';
+        }
+    }
+
+    // Step 3: Convert the modified expression to postfix
+    string postfixExpression = infixToPostfix(expression);
+
+    // Step 4: Reverse the postfix expression to get prefix
+    reverse(postfixExpression.begin(), postfixExpression.end());
+
+    return postfixExpression;
+}
+
+int main() {
+    string infixExpression;
+    cout << "Enter an infix expression: ";
+    cin >> infixExpression;
+
+    string prefixExpression = infixToPrefix(infixExpression);
+
+    cout << "Prefix Expression: " << prefixExpression << endl;
+
+    return 0;
+}
